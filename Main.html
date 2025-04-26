@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <h1>MOVIEFAV</h1>
+    <form action = '/add-movie' method = 'POST'>
+        <label>Name </label>
+        <input type = "text" name = "Name" placeholder = "Enter your Name" />
+
+        <label>Favourite Movie </label>
+        <input type = "text" name = "Movie" placeholder = "Enter Movie Name" />
+
+        <label>Rating </label>
+        <input type = "range" id="Rating" name = "Rating" min="0" max="10" step="1" value="5"/>
+        <span id="ratingVal">5</span>
+        <br>
+        <button type="submit">Submit</button>
+        <button type="reset">Clear</button>
+    </form>
+
+    <script>
+        const ratingInput = document.getElementById('Rating')
+        const ratingValue = document.getElementById('ratingVal')
+
+        ratingInput.addEventListener('input', () => {
+            ratingValue.textContent = ratingInput.value;
+        })
+    </script>
+
+
+</body>
+</html>

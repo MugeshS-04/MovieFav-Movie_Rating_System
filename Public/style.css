@@ -1,0 +1,67 @@
+* {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+body {
+    background: url('bg.jpg') no-repeat center center;  
+    background-size: cover;        /* Scales the image to cover the entire screen */
+    height: 100vh;                 /* Full viewport height */
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    position: absolute;
+    left : 37.5%;
+    color: whitesmoke;
+    font-size: 70px;
+}
+
+
+form {
+   width: 800px;
+   height: 435px;
+   backdrop-filter: blur(15px);
+   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); 
+   border-radius : 10px;
+   color : white;
+   position : absolute;
+   left : 530px;
+   top : 200px;
+}
+
+label {
+    font-size: 30px;
+    display: block;
+    margin-top: 30px;
+    text-align: center;
+    
+}
+
+input {
+    width : 80%;
+    height: 8%;
+    position: relative;
+    margin-left: 8.5%;
+    margin-top: 7px;
+    border: none;
+    border-radius: 15px;
+    padding-left: 12px;
+}
+
+button {
+    margin-top: 70px;
+    display: inline-block;
+    width: 120px;
+    height: 70px;
+    position: relative;
+    top : -55px;
+    left : 7%;
+    border-radius: 10px;
+    border : none;
+    margin-left: 150px;
+}
+
+span {
+    font-size: 25px;
+}
