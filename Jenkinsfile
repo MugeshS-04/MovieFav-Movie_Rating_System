@@ -35,7 +35,6 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    
                     docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}")
                 }
             }
@@ -54,30 +53,39 @@ pipeline {
         stage('Deploy Container') {
             steps {
                 script {
-                    // 1. Stop container if exists (Windows-compatible error handling)
-                    bat """
-                    docker stop moviefav || (
-                        echo No container to stop && 
-                        exit /b 0
-                    )
-                    """
+                    // 1. Stop and remove existing container (Windows compatible)
+                    bat 'docker stop moviefav 2> nul || echo No container to stop'
+                    bat 'docker rm moviefav 2> nul || echo No container to remove'
                     
-                    // 2. Remove container if exists
-                    bat """
-                    docker rm moviefav || (
-                        echo No container to remove && 
-                        exit /b 0
-                    )
-                    """
+                    // 2. Run new container (single line command for Windows)
+                    bat "docker run -d -p 3000:3000 --name moviefav ${DOCKER_IMAGE}:${DOCKER_TAG}"
                     
-                    // 3. Run new container (will fail pipeline if this fails)
+                    // 3. Verify container is running
                     bat """
-                    docker run -d \
-                    -p 3000:3000 \
-                    --name moviefav \
-                    ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    for /L %%i in (1,1,10) do (
+                        docker inspect -f "{{.State.Status}}" moviefav | find "running" > nul && (
+                            echo Container started successfully
+                            exit /b 0
+                        )
+                        timeout /t 5 > nul
+                    )
+                    echo Container failed to start
+                    exit /b 1
                     """
                 }
+            }
+        }
+    }
+    
+    post {
+        always {
+            // Cleanup workspace
+            cleanWs()
+            
+            // Optional: Stop and remove container after build
+            script {
+                bat 'docker stop moviefav 2> nul || echo No container to stop'
+                bat 'docker rm moviefav 2> nul || echo No container to remove'
             }
         }
     }
