@@ -26,9 +26,7 @@ pipeline {
         
         stage('Test') {
             steps {
-                script {
-                    bat 'npm test || exit 0'
-                }
+                bat 'npm test || exit 0'
             }
         }
         
@@ -53,24 +51,37 @@ pipeline {
         stage('Deploy Container') {
             steps {
                 script {
-                    // 1. Stop and remove existing container (Windows compatible)
-                    bat 'docker stop moviefav 2> nul || echo No container to stop'
-                    bat 'docker rm moviefav 2> nul || echo No container to remove'
+                    // 1. Stop container silently
+                    bat 'docker stop moviefav 2> nul'
                     
-                    // 2. Run new container (single line command for Windows)
+                    // 2. Remove container silently
+                    bat 'docker rm moviefav 2> nul'
+                    
+                    // 3. Run new container (single line)
                     bat "docker run -d -p 3000:3000 --name moviefav ${DOCKER_IMAGE}:${DOCKER_TAG}"
                     
-                    // 3. Verify container is running
+                    // 4. Verify deployment
                     bat """
-                    for /L %%i in (1,1,10) do (
-                        docker inspect -f "{{.State.Status}}" moviefav | find "running" > nul && (
-                            echo Container started successfully
-                            exit /b 0
-                        )
-                        timeout /t 5 > nul
+                    @echo off
+                    set max_retries=10
+                    set retry_delay=5
+                    set retry_count=0
+                    
+                    :check_container
+                    docker inspect -f "{{.State.Status}}" moviefav 2> nul | find "running" > nul
+                    if %errorlevel% equ 0 (
+                        echo Container is running
+                        exit /b 0
                     )
-                    echo Container failed to start
-                    exit /b 1
+                    
+                    set /a retry_count+=1
+                    if %retry_count% geq %max_retries% (
+                        echo Container failed to start after %max_retries% attempts
+                        exit /b 1
+                    )
+                    
+                    timeout /t %retry_delay% > nul
+                    goto check_container
                     """
                 }
             }
@@ -79,14 +90,9 @@ pipeline {
     
     post {
         always {
-            // Cleanup workspace
+            // Silent cleanup
+            bat '@docker stop moviefav 2> nul & docker rm moviefav 2> nul'
             cleanWs()
-            
-            // Optional: Stop and remove container after build
-            script {
-                bat 'docker stop moviefav 2> nul || echo No container to stop'
-                bat 'docker rm moviefav 2> nul || echo No container to remove'
-            }
         }
     }
 }
