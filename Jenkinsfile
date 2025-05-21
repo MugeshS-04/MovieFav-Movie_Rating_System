@@ -54,9 +54,21 @@ pipeline {
         stage('Deploy Container') {
             steps {
                 script {
-                    bat 'docker stop moviefav || echo "No container to stop"'
-                    bat 'docker rm moviefav || echo "No container to remove"'
-                    bat "docker run -d -p 3000:3000 --name moviefav ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                    try {
+                        bat 'docker stop moviefav || true'
+                        bat 'docker rm moviefav || true'
+                        
+                        bat """
+                        docker run \
+                        -d \
+                        -p 3000:3000 \
+                        --name moviefav \
+                        --restart unless-stopped \
+                        ${DOCKER_IMAGE}:${DOCKER_TAG}
+                        """
+                    } catch (Exception e) {
+                        error("Docker deployment failed: ${e.message}")
+                    }
                 }
             }
         }
